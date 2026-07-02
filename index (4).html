@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PaisaPal — Money Stuff, Explained</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Caveat:wght@600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #FFF8F0;
+    --rule: #E9DCEE;
+    --margin: #FFB6C7;
+    --ink: #2B2440;
+    --ink-soft: #6B637E;
+
+    --coral: #FF6B5C;
+    --coral-bg: #FFE1DC;
+    --mint: #17B3A3;
+    --mint-bg: #D9F5F0;
+    --sunny: #F2A900;
+    --sunny-bg: #FFF3D2;
+    --lav: #8B6FE0;
+    --lav-bg: #ECE5FE;
+
+    --card: #FFFFFF;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; }
+
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Inter', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  /* notebook page texture */
+  .page {
+    width: 100%;
+    max-width: 760px;
+    min-height: 100vh;
+    background-image:
+      repeating-linear-gradient(transparent, transparent 33px, var(--rule) 33px, var(--rule) 34px);
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    padding: 0 28px 0 56px;
+  }
+
+  .page::before {
+    content: "";
+    position: absolute;
+    top: 0; bottom: 0; left: 40px;
+    width: 2px;
+    background: var(--margin);
+    opacity: 0.6;
+  }
+
+  /* ---------- HEADER ---------- */
+  header {
+    padding: 28px 0 18px;
+    position: relative;
+  }
+
+  .brand-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .coin {
+    width: 46px; height: 46px;
+    border-radius: 50%;
+    background: linear-gradient(160deg, var(--sunny), #D68F00);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700;
+    color: #fff;
+    font-size: 22px;
+    box-shadow: 0 3px 0 #B87700;
+    flex-shrink: 0;
+    transform: rotate(-6deg);
+  }
+
+  .brand-text h1 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700;
+    font-size: 26px;
+    margin: 0;
+    line-height: 1.1;
+  }
+  .brand-text h1 span { color: var(--coral); }
+
+  .brand-text .tagline {
+    font-family: 'Caveat', cursive;
+    font-size: 17px;
+    color: var(--ink-soft);
+    margin-top: 2px;
+  }
+
+  .status-chip {
+    position: absolute;
+    top: 30px;
+    right: 0;
+    font-family: 'Inter', sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--card);
+    border: 1.5px solid var(--ink);
+    border-radius: 999px;
+    padding: 5px 12px 5px 9px;
+    box-shadow: 2px 2px 0 var(--ink);
+  }
+  .status-dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--coral);
+  }
+  .status-dot.live { background: var(--mint); }
+
+  /* ---------- QUICK ACTIONS ---------- */
+  .quick-wrap {
+    padding: 4px 0 16px;
+  }
+  .quick-label {
+    font-family: 'Caveat', cursive;
+    font-size: 18px;
+    color: var(--ink-soft);
+    margin-bottom: 8px;
+  }
+  .quick-actions {
+    display: flex;
+    gap: 10px;
+    overflow-x: auto;
+    padding-bottom: 6px;
+  }
+  .quick-actions::-webkit-scrollbar { height: 5px; }
+  .quick-actions::-webkit-scrollbar-thumb { background: var(--rule); border-radius: 3px; }
+
+  .chip {
+    flex: 0 0 auto;
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 600;
+    font-size: 13px;
+    border: 1.5px solid var(--ink);
+    border-radius: 999px;
+    padding: 9px 16px;
+    cursor: pointer;
+    color: var(--ink);
+    box-shadow: 2.5px 2.5px 0 var(--ink);
+    transition: transform 0.1s ease, box-shadow 0.1s ease;
+    white-space: nowrap;
+  }
+  .chip:hover { transform: translate(-1px, -1px); box-shadow: 3.5px 3.5px 0 var(--ink); }
+  .chip:active { transform: translate(1px, 1px); box-shadow: 1px 1px 0 var(--ink); }
+  .chip:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+
+  .chip.c1 { background: var(--mint-bg); }
+  .chip.c2 { background: var(--coral-bg); }
+  .chip.c3 { background: var(--sunny-bg); }
+  .chip.c4 { background: var(--lav-bg); }
+
+  /* ---------- THREAD ---------- */
+  #thread {
+    flex: 1;
+    padding: 10px 0 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    overflow-y: auto;
+  }
+
+  .empty-state {
+    margin: auto;
+    text-align: center;
+    max-width: 340px;
+    padding: 30px 0;
+  }
+  .empty-state .doodle { font-size: 40px; margin-bottom: 6px; }
+  .empty-state h2 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 19px;
+    margin: 0 0 8px;
+  }
+  .empty-state p { font-size: 13.5px; color: var(--ink-soft); line-height: 1.6; }
+
+  .note-row { display: flex; }
+  .note-row.user { justify-content: flex-end; }
+  .note-row.assistant { justify-content: flex-start; }
+
+  .note {
+    max-width: 78%;
+    position: relative;
+    padding: 14px 16px 12px;
+    border: 1.5px solid var(--ink);
+    border-radius: 4px;
+    font-size: 14.5px;
+    line-height: 1.6;
+    white-space: pre-wrap;
+    box-shadow: 3px 3px 0 rgba(43,36,64,0.15);
+  }
+
+  .note::before {
+    content: "";
+    position: absolute;
+    top: -9px;
+    left: 50%;
+    transform: translateX(-50%) rotate(-3deg);
+    width: 44px;
+    height: 16px;
+    background: rgba(255,255,255,0.75);
+    border: 1px solid rgba(43,36,64,0.15);
+  }
+
+  .note-row.assistant .note { background: var(--mint-bg); transform: rotate(-1.1deg); }
+  .note-row.user .note { background: var(--sunny-bg); transform: rotate(1.1deg); }
+
+  .note-label {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700;
+    font-size: 10.5px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    margin-bottom: 5px;
+    display: block;
+  }
+  .note-row.assistant .note-label { color: var(--mint); }
+  .note-row.user .note-label { color: #B8790A; }
+
+  .thinking-dots { display: flex; gap: 4px; }
+  .thinking-dots span {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--ink-soft);
+    animation: pulse 1.1s infinite ease-in-out;
+  }
+  .thinking-dots span:nth-child(2) { animation-delay: 0.15s; }
+  .thinking-dots span:nth-child(3) { animation-delay: 0.3s; }
+  @keyframes pulse { 0%, 80%, 100% { opacity: 0.25; } 40% { opacity: 1; } }
+  @media (prefers-reduced-motion: reduce) {
+    .thinking-dots span { animation: none; opacity: 0.7; }
+  }
+
+  .error-note {
+    align-self: center;
+    font-family: 'Inter', sans-serif;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: #A8391F;
+    background: var(--coral-bg);
+    border: 1.5px solid var(--coral);
+    border-radius: 8px;
+    padding: 10px 14px;
+  }
+
+  /* ---------- INPUT ---------- */
+  form {
+    display: flex;
+    gap: 10px;
+    padding: 14px 0 26px;
+    position: sticky;
+    bottom: 0;
+    background: linear-gradient(var(--bg) 60%, var(--bg));
+  }
+
+  textarea {
+    flex: 1;
+    resize: none;
+    font-family: 'Inter', sans-serif;
+    font-size: 14.5px;
+    padding: 13px 16px;
+    background: var(--card);
+    border: 1.5px solid var(--ink);
+    border-radius: 14px;
+    color: var(--ink);
+    line-height: 1.4;
+    height: 48px;
+    box-shadow: 3px 3px 0 var(--ink);
+  }
+  textarea::placeholder { color: var(--ink-soft); }
+  textarea:focus-visible { outline: none; box-shadow: 3px 3px 0 var(--lav); border-color: var(--lav); }
+
+  button[type="submit"] {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700;
+    font-size: 13.5px;
+    background: var(--coral);
+    color: #fff;
+    border: 1.5px solid var(--ink);
+    border-radius: 14px;
+    padding: 0 22px;
+    cursor: pointer;
+    box-shadow: 3px 3px 0 var(--ink);
+    transition: transform 0.1s ease, box-shadow 0.1s ease;
+  }
+  button[type="submit"]:hover { transform: translate(-1px, -1px); box-shadow: 4px 4px 0 var(--ink); }
+  button[type="submit"]:active { transform: translate(1px, 1px); box-shadow: 1.5px 1.5px 0 var(--ink); }
+  button[type="submit"]:disabled { background: var(--ink-soft); cursor: not-allowed; box-shadow: 3px 3px 0 var(--ink); transform: none; }
+  button[type="submit"]:focus-visible { outline: 2px solid var(--lav); outline-offset: 2px; }
+
+  @media (max-width: 560px) {
+    .page { padding: 0 16px 0 34px; }
+    .page::before { left: 22px; }
+    .note { max-width: 88%; }
+    .status-chip { position: static; margin-top: 12px; width: fit-content; }
+    .brand-row { flex-wrap: wrap; }
+  }
+</style>
+</head>
+<body>
+
+<div class="page">
+  <header>
+    <div class="brand-row">
+      <div class="coin">₹</div>
+      <div class="brand-text">
+        <h1>Paisa<span>Pal</span></h1>
+        <div class="tagline">money stuff, explained like a friend~</div>
+      </div>
+    </div>
+    <div class="status-chip">
+      <span class="status-dot" id="statusDot"></span>
+      <span id="statusText">checking…</span>
+    </div>
+  </header>
+
+  <div class="quick-wrap">
+    <div class="quick-label">try asking me...</div>
+    <div class="quick-actions">
+      <button class="chip c1" type="button" data-q="If I invest ₹15,000/month (SIP) at 12% expected annual return for 20 years, what do I end up with?">📈 SIP growth over 20 yrs</button>
+      <button class="chip c2" type="button" data-q="I have ₹2,00,000 in credit card debt at 36% APR and can pay ₹10,000/month. How long to pay it off?">💳 Debt payoff time</button>
+      <button class="chip c3" type="button" data-q="My income is ₹80,000/month and my expenses are ₹55,000. What's my savings rate?">🐷 My savings rate</button>
+      <button class="chip c4" type="button" data-q="I have debt of ₹3,00,000 at 36% APR and want to pay it off in 2 years. How much do I need to pay monthly?">⏱️ EMI to clear debt fast</button>
+    </div>
+  </div>
+
+  <div id="thread">
+    <div class="empty-state" id="emptyState">
+      <div class="doodle">✏️💸</div>
+      <h2>blank page, ask me anything</h2>
+      <p>SIPs, EMIs, debt payoff, savings goals — tap a sticky note above or type your own question below.</p>
+    </div>
+  </div>
+
+  <form id="chatForm">
+    <textarea id="messageInput" placeholder="type your money question..." required></textarea>
+    <button type="submit" id="sendBtn">send →</button>
+  </form>
+</div>
+
+<script>
+  const API_URL = 'https://paisapal-zfmw.onrender.com/chat';
+  const sessionId = 'ui-' + Math.random().toString(36).slice(2);
+
+  const thread = document.getElementById('thread');
+  const emptyState = document.getElementById('emptyState');
+  const form = document.getElementById('chatForm');
+  const input = document.getElementById('messageInput');
+  const sendBtn = document.getElementById('sendBtn');
+  const statusDot = document.getElementById('statusDot');
+  const statusText = document.getElementById('statusText');
+
+  function addNote(role, text) {
+    if (emptyState) emptyState.remove();
+
+    const row = document.createElement('div');
+    row.className = 'note-row ' + role;
+
+    const note = document.createElement('div');
+    note.className = 'note';
+    // slight random rotation jitter for the hand-placed feel
+    const jitter = (Math.random() * 1.6 - 0.8).toFixed(2);
+    const base = role === 'user' ? 1.1 : -1.1;
+    note.style.transform = `rotate(${base + parseFloat(jitter)}deg)`;
+
+    const label = document.createElement('span');
+    label.className = 'note-label';
+    label.textContent = role === 'user' ? 'you' : 'paisapal';
+
+    const body = document.createElement('div');
+    body.textContent = text;
+
+    note.appendChild(label);
+    note.appendChild(body);
+    row.appendChild(note);
+    thread.appendChild(row);
+    thread.scrollTop = thread.scrollHeight;
+    return body;
+  }
+
+  function addThinkingNote() {
+    const row = document.createElement('div');
+    row.className = 'note-row assistant';
+    row.id = 'thinkingRow';
+
+    const note = document.createElement('div');
+    note.className = 'note';
+    note.style.transform = 'rotate(-1.1deg)';
+
+    const label = document.createElement('span');
+    label.className = 'note-label';
+    label.textContent = 'paisapal';
+
+    const dots = document.createElement('div');
+    dots.className = 'thinking-dots';
+    dots.innerHTML = '<span></span><span></span><span></span>';
+
+    note.appendChild(label);
+    note.appendChild(dots);
+    row.appendChild(note);
+    thread.appendChild(row);
+    thread.scrollTop = thread.scrollHeight;
+  }
+
+  function removeThinkingNote() {
+    const el = document.getElementById('thinkingRow');
+    if (el) el.remove();
+  }
+
+  async function sendMessage(message) {
+    addNote('user', message);
+    addThinkingNote();
+    sendBtn.disabled = true;
+
+    try {
+      const res = await fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ session_id: sessionId, message })
+      });
+
+      if (!res.ok) throw new Error('Server responded with ' + res.status);
+
+      const data = await res.json();
+      removeThinkingNote();
+      addNote('assistant', data.reply);
+    } catch (err) {
+      removeThinkingNote();
+      const note = document.createElement('div');
+      note.className = 'error-note';
+      note.textContent = "couldn't reach the server — make sure it's running at 127.0.0.1:8000";
+      thread.appendChild(note);
+      thread.scrollTop = thread.scrollHeight;
+    } finally {
+      sendBtn.disabled = false;
+    }
+  }
+
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const text = input.value.trim();
+    if (!text) return;
+    input.value = '';
+    sendMessage(text);
+  });
+
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      form.requestSubmit();
+    }
+  });
+
+  document.querySelectorAll('.chip').forEach(btn => {
+    btn.addEventListener('click', () => sendMessage(btn.dataset.q));
+  });
+
+  async function checkServer() {
+    try {
+      const res = await fetch('https://paisapal-zfmw.onrender.com/docs', { method: 'GET' });
+      if (res.ok) {
+        statusDot.classList.add('live');
+        statusText.textContent = 'connected';
+      } else {
+        throw new Error();
+      }
+    } catch {
+      statusDot.classList.remove('live');
+      statusText.textContent = 'offline';
+    }
+  }
+  checkServer();
+</script>
+
+</body>
+</html>
