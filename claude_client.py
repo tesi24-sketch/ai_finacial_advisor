@@ -27,7 +27,7 @@ Rules you must follow:
 chat_sessions: dict[str, "genai.chats.Chat"] = {}
 
 MAX_RETRIES = 3
-RETRY_DELAY_SECONDS = 4  # waits 4s, 8s, 16s between attempts
+RETRY_DELAY_SECONDS = 4
 
 def chat(session_id: str, message: str) -> str:
     if session_id not in chat_sessions:
@@ -40,19 +40,24 @@ def chat(session_id: str, message: str) -> str:
         )
     session = chat_sessions[session_id]
 
-    last_error = None
     for attempt in range(1, MAX_RETRIES + 1):
         try:
             response = session.send_message(message)
             return response.text
+        except errors.ClientError as e:
+            # 429 = quota exceeded — retrying won't help, fail immediately with a clear message
+            if "RESOURCE_EXHAUSTED" in str(e) or "429" in str(e):
+                return ("PaisaPal has hit its daily free usage limit on the AI service. "
+                        "This resets after 24 hours — please try again later.")
+            raise
         except errors.ServerError as e:
-            last_error = e
+            # 503 = temporarily overloaded — worth retrying briefly
             if attempt < MAX_RETRIES:
                 wait = RETRY_DELAY_SECONDS * attempt
                 print(f"Gemini overloaded (attempt {attempt}/{MAX_RETRIES}). Retrying in {wait}s...")
                 time.sleep(wait)
             else:
-                print("Gemini still overloaded after all retries.")
+                return ("Sorry, the AI service is experiencing high demand right now. "
+                        "Please wait a minute and try again.")
 
-    return ("Sorry, the AI service is experiencing high demand right now and couldn't respond "
-            "after a few attempts. Please wait a minute and try again.")
+    return "Something went wrong. Please try again."
